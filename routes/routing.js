@@ -3,6 +3,7 @@ const express=require('express')
 const userController=require('../controller/userController')
 const bookController=require('../controller/bookController')
 const jwtMiddleware = require('../middlewares/jwtMiddleware')
+const multerMiddleware=require('../middlewares/multerMiddleware')
 
 // create router object
 const router=new express.Router()
@@ -19,8 +20,8 @@ router.post('/google/sign-in',userController.googleLoginController)
 
 // ----------------------authorised user---------------------------
 
-// add book
-router.post('/user/book/add',jwtMiddleware,bookController.addBookController)
+// add book - request body content is form data (file type) so we use "multer"
+router.post('/user/book/add',jwtMiddleware,multerMiddleware.array('uploadImages',3),bookController.addBookController)
 
 
 

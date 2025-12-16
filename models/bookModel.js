@@ -56,7 +56,7 @@ const bookSchema=new mongoose.Schema({
     },
     status:{
         type:String,
-        required:'pending'
+        default:'pending'
     },
     buyerMail:{
         type:String,
