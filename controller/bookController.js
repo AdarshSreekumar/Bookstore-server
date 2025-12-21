@@ -102,3 +102,19 @@ exports.getUserBoughtBookProfilePageController=async(req,res)=>{
     }
 
 }
+
+// view a book
+exports.viewBookController=async(req,res)=>{
+    console.log("Inside viewBookController");
+    // get id from req
+    const {id}=req.params
+    // get book details of given id from db
+    try {
+        const bookDetails=await books.findById({_id:id})
+        res.status(200).json(bookDetails)
+    } catch (error) {
+        console.log(error);
+        res.status(500).json(error)
+        
+    }
+}
