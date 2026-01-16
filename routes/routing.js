@@ -4,6 +4,7 @@ const userController=require('../controller/userController')
 const bookController=require('../controller/bookController')
 const jwtMiddleware = require('../middlewares/jwtMiddleware')
 const multerMiddleware=require('../middlewares/multerMiddleware')
+const adminMiddleware = require('../middlewares/adminMiddleware')
 
 // create router object
 const router=new express.Router()
@@ -37,5 +38,26 @@ router.get('/user-boughtbooks/all',jwtMiddleware,bookController.getUserBoughtBoo
 
 // get single book
 router.get('/books/:id/view',jwtMiddleware,bookController.viewBookController)
+
+// user edit - request body content is form data
+router.put('/user/:id/edit',jwtMiddleware,multerMiddleware.single('picture'),userController.updateUserProfileController)
+
+// delete book
+router.delete('/books/:id',jwtMiddleware,bookController.deleteBookController)
+
+// make payment
+router.put('/books/:id/buy',jwtMiddleware,bookController.bookPaymentController)
+
+// ----------------------------authorised admin----------------------------
+
+// get all book
+router.get('/admin-books/all',adminMiddleware,bookController.getAllBooksController)
+
+// / get all book
+router.get('/users/all',adminMiddleware,userController.getAllUsersController)
+
+// / update book status
+router.put('/books/:id/update',adminMiddleware,bookController.updateBookStatusController)
+
 
 module.exports=router

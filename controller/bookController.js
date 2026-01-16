@@ -1,4 +1,5 @@
 const books=require('../models/bookModel')
+const stripe = require('stripe')(process.env.STRIPESECRET);
 
 
 // add book
@@ -112,6 +113,105 @@ exports.viewBookController=async(req,res)=>{
     try {
         const bookDetails=await books.findById({_id:id})
         res.status(200).json(bookDetails)
+    } catch (error) {
+        console.log(error);
+        res.status(500).json(error)
+        
+    }
+}
+
+// get all books - admin : login user
+exports.getAllBooksController=async(req,res)=>{
+    console.log("inside getAllBooksController");
+    
+    try {
+        // get all book from db
+        const allBooks=await books.find()
+        res.status(200).json(allBooks)
+    } catch (error) {
+        console.log(error);
+        res.status(500).json(error)
+        
+    }
+
+}
+
+// update book status - admin : login user
+exports.updateBookStatusController=async(req,res)=>{
+    console.log("inside updateBookStatusController");
+    // get _id of book
+    const {id}=req.params
+    try {
+        // get all book from db
+        const bookDetails=await books.findById({_id:id})
+        bookDetails.status="approved"
+        // save changes to mongobd
+        await bookDetails.save()
+        res.status(200).json(bookDetails)
+    } catch (error) {
+        console.log(error);
+        res.status(500).json(error)
+        
+    }
+
+}
+
+// delete user book - user
+exports.deleteBookController=async(req,res)=>{
+    console.log("inside deleteBookController");
+    // get _id of book
+    const {id}=req.params
+    try {
+        // get all book from db
+        const bookDetails=await books.findByIdAndDelete({_id:id})
+        res.status(200).json(bookDetails)
+    } catch (error) {
+        console.log(error);
+        res.status(500).json(error)
+        
+    }
+
+}
+
+// payment
+exports.bookPaymentController=async(req,res)=>{
+    console.log("inside bookPaymentController");
+    // const {title,author,pages,price,discountPrice,imageURL,abstract,language,publisher,isbn,category,_id,uploadImages,sellerMail}=req.body
+    const email=req.payload
+    const {id}=req.params
+    try {
+       const bookDetails=await books.findById({_id:id})
+       bookDetails.status="sold"
+       bookDetails.buyerMail=email
+       await bookDetails.save()
+       const {title,author,pages,price,discountPrice,imageURL,abstract,language,publisher,isbn,category,_id,uploadImages,sellerMail}=bookDetails
+        // checkout session created
+        const line_items=[{
+            price_data:{
+                currency:'usd',
+                product_data:{
+                    name:title,
+                    description:`${author} | ${publisher}`,
+                    images:uploadImages,
+                    metadata:{
+                        title,author,pages,price,discountPrice,imageURL
+                    }
+                },
+                unit_amount:Math.round(discountPrice*100)
+
+            },
+            quantity:1
+        }]
+        const session = await stripe.checkout.sessions.create({
+        line_items,
+        mode: 'payment',
+        success_url: 'http://localhost:5173/user/payment-success',
+        cancel_url:'http://localhost:5173/user/payment-error',
+        payment_method_types:["card"]
+        });
+        console.log(session);
+        res.status(200).json({checkoutURL:session.url})
+        
     } catch (error) {
         console.log(error);
         res.status(500).json(error)

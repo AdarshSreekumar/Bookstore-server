@@ -91,5 +91,42 @@ exports.googleLoginController=async(req,res)=>{
 }
 
 // usereditprofile
+exports.updateUserProfileController=async (req,res)=>{
+    console.log("Inside updateUserProfileController ");
+    // get id from req url
+    const {id}=req.params
+    // get email
+    const email=req.payload
+    // get body text content : username
+    const {username,password,bio,role,picture}=req.body
+    // get file data
+    const uploadImage=req.file?req.file.filename:picture
+    console.log(id,email,username,password,bio,role,uploadImage);
+    try {
+        const updateUser=await users.findByIdAndUpdate({_id:id},{
+            username,email,password,picture:uploadImage,bio,role
+        },{new:true})
+        res.status(200).json(updateUser)
+    } catch (error) {
+        console.log(error);
+        res.status(500).json(error)
+    }
+    
+}
+
+// getallusers
+exports.getAllUsersController=async(req,res)=>{
+    console.log("Inside getallUsersController");
+    try{
+        // all users other than admin
+        const allUsers=await users.find({role:{$ne:"admin"}})
+        res.status(200).json(allUsers)
+
+    }catch(error){
+        console.log(error);
+        res.status(500).json(error)
+    }
+    
+}
+
 // admineditprofile
-                                        
